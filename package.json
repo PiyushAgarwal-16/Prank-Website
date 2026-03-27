@@ -1,0 +1,8 @@
+{
+  "name": "prank-website",
+  "version": "1.0.0",
+  "description": "Important Information Website",
+  "scripts": {
+    "build": "node scripts/generate.js"
+  }
+}

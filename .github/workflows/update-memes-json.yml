@@ -1,0 +1,38 @@
+name: Update memes.json
+
+on:
+  push:
+    paths:
+      - "memes/**"
+      - "scripts/generate-memes-json.ps1"
+      - ".github/workflows/update-memes-json.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate memes.json
+        shell: pwsh
+        run: ./scripts/generate-memes-json.ps1 -Root .
+
+      - name: Commit changes if needed
+        shell: bash
+        run: |
+          if git diff --quiet -- memes.json; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add memes.json
+          git commit -m "chore: auto-update memes.json"
+          git push

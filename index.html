@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Important Information</title>
+  <style>
+    :root {
+      --bg: #f7f8fa;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --button: #0f766e;
+      --button-hover: #0b5f58;
+      --shadow: 0 10px 26px rgba(17, 24, 39, 0.12);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px 14px;
+      background: radial-gradient(circle at top right, #ffffff 0%, var(--bg) 58%);
+      color: var(--text);
+      font-family: "Segoe UI Variable", "Trebuchet MS", Tahoma, sans-serif;
+      line-height: 1.4;
+    }
+
+    main {
+      width: min(100%, 780px);
+      background: var(--card);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      text-align: center;
+    }
+
+    h1 {
+      margin: 2px 0 14px;
+      font-size: clamp(1.5rem, 5vw, 2.25rem);
+      letter-spacing: 0.01em;
+    }
+
+    .meme-frame {
+      margin: 0;
+      width: 100%;
+      min-height: 220px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #eef2f7;
+      display: grid;
+      place-items: center;
+      box-shadow: var(--shadow);
+    }
+
+    #memeImage {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      max-height: 72vh;
+      object-fit: contain;
+      border-radius: var(--radius);
+    }
+
+    #statusText {
+      margin: 14px 0 18px;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 12px;
+      background: var(--button);
+      color: #ffffff;
+      padding: 14px 18px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      min-width: 170px;
+      min-height: 48px;
+      touch-action: manipulation;
+      transition: background-color 0.2s ease, transform 0.05s ease;
+    }
+
+    button:hover {
+      background: var(--button-hover);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.65;
+    }
+
+    @media (min-width: 640px) {
+      body {
+        padding: 30px 20px;
+      }
+
+      main {
+        padding: 24px;
+      }
+
+      #statusText {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Important Information</h1>
+
+    <figure class="meme-frame">
+      <img id="memeImage" src="" alt="Random meme" decoding="async" />
+    </figure>
+
+    <p id="statusText">Click this button for actual study material</p>
+    <button id="nextMemeButton" type="button">Click this button for actual study material</button>
+  </main>
+
+  <script>
+    const memeImage = document.getElementById("memeImage");
+    const statusText = document.getElementById("statusText");
+    const nextMemeButton = document.getElementById("nextMemeButton");
+
+    let memes = [];
+    let currentIndex = -1;
+    let nextIndex = -1;
+
+    // Picks a random index and avoids returning the excluded index when possible.
+    function pickRandomIndex(excludedIndex) {
+      if (memes.length === 0) return -1;
+      if (memes.length === 1) return 0;
+
+      let index = Math.floor(Math.random() * memes.length);
+      while (index === excludedIndex) {
+        index = Math.floor(Math.random() * memes.length);
+      }
+      return index;
+    }
+
+    // Preloads one meme image so the next click feels instant on slower networks.
+    function preloadMeme(index) {
+      if (index < 0 || !memes[index]) return;
+      const img = new Image();
+      img.src = memes[index];
+    }
+
+    function updateStatus(message, isError = false) {
+      statusText.textContent = message;
+      statusText.style.color = isError ? "#b91c1c" : "#6b7280";
+    }
+
+    function prepareNextMeme() {
+      nextIndex = pickRandomIndex(currentIndex);
+      preloadMeme(nextIndex);
+    }
+
+    function showMeme(index) {
+      const path = memes[index];
+      if (!path) return;
+
+      currentIndex = index;
+      memeImage.src = path;
+      memeImage.alt = "Random meme image";
+      updateStatus("Just kidding here is the actual study material");
+      prepareNextMeme();
+    }
+
+    function triggerPrank() {
+      // 1. Hide the button once clicked
+      nextMemeButton.style.display = "none";
+
+      // 2. Play the GIF (replace "prank.gif" with your actual gif file path if different)
+      memeImage.src = "prank.gif"; 
+      memeImage.alt = "Prank GIF";
+
+      // 3. Show the custom prank text
+      // Replace the text below with whatever you want to display
+      updateStatus("Courtesy of Mr. Piyush Agarwal");
+    }
+
+    // Add more memes by placing image files in memes/.
+    // memes.json is auto-generated by scripts/generate-memes-json.ps1.
+    async function loadMemes() {
+      try {
+        const response = await fetch("memes.json");
+        if (!response.ok) {
+          throw new Error("Could not load memes.json");
+        }
+
+        const data = await response.json();
+        memes = Array.isArray(data)
+          ? data.filter((item) => typeof item === "string" && item.trim().length > 0)
+          : [];
+
+        if (memes.length === 0) {
+          memeImage.removeAttribute("src");
+          memeImage.alt = "No memes available";
+          nextMemeButton.disabled = true;
+          updateStatus("No memes found. Add image paths to memes.json.", true);
+          return;
+        }
+
+        nextMemeButton.disabled = false;
+        showMeme(pickRandomIndex(-1));
+      } catch (error) {
+        console.error(error);
+        memeImage.removeAttribute("src");
+        memeImage.alt = "Failed to load memes";
+        nextMemeButton.disabled = true;
+        updateStatus("Failed to load memes.json. Check file paths and try again.", true);
+      }
+    }
+
+    nextMemeButton.addEventListener("click", triggerPrank);
+    loadMemes();
+  </script>
+</body>
+</html>
